@@ -14,6 +14,21 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: Récupérer la dernière version publiée
+        id: get_version
+        run: |
+          LATEST_VERSION=$(curl -s "https://hub.docker.com/v2/repositories/remylt/cicd-tuto/tags" | jq -r '.results[].name' | grep -E '^[0-9]+\.[0-9]+$' | sort -Vr | head -n 1)
+          echo "Dernière version trouvée : $LATEST_VERSION"
+          if [[ -z "$LATEST_VERSION" ]]; then
+            NEW_VERSION="1.0"
+          else
+            MAJOR=$(echo $LATEST_VERSION | cut -d. -f1)
+            MINOR=$(echo $LATEST_VERSION | cut -d. -f2)
+            NEW_VERSION="$MAJOR.$(($MINOR + 1))"
+          fi
+          echo "Nouvelle version : $NEW_VERSION"
+          echo "VERSION=$NEW_VERSION" >> $GITHUB_ENV
+
       - name: List files
         run: ls -la
 
@@ -23,8 +38,12 @@ jobs:
       - name: List Docker images
         run: docker images
 
-      - name: taguer l'image pour docker run
-        run: docker tag my-image:latest remylt/cicd-tuto:latest
-      
-      - name: Push Docker image
-        run: docker push remylt/cicd-tuto:latest
+      - name: Taguer l'image avec la nouvelle version
+        run: |
+          docker tag my-image:latest remylt/cicd-tuto:latest
+          docker tag my-image:latest remylt/cicd-tuto:$VERSION
+
+      - name: Pousser l'image Docker
+        run: |
+          docker push remylt/cicd-tuto:latest
+          docker push remylt/cicd-tuto:$VERSION
