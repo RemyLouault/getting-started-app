@@ -1,9 +1,40 @@
+###name: build-docker
+###on: [push]
+###jobs: 
+  ###build-docker-image:
+    ###runs-on: ubuntu-latest
+    ###steps:
+      ###- run: ls
+
+  ###- checkout code
+  ###- ls
+  ###- docker build
+  ###- docker images
+  ###- docker push
+  ###{pas de credentials en clair}
+
+
 name: build-docker
 on: [push]
+
 jobs: 
   build-docker-image:
     runs-on: ubuntu-latest
     steps:
-      - run: ls
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      
+      - name: List files
+        run: ls -la
+
+      - name: Build Docker image
+        run: docker build -t my-image:latest .
+
+      - name: List Docker images
+        run: docker images
+
+      ###- name: Login to DockerHub
+        ###run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Push Docker image
+        run: docker push my-image:latest
