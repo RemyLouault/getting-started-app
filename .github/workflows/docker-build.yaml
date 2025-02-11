@@ -23,5 +23,8 @@ jobs:
       - name: List Docker images
         run: docker images
 
+      - name: taguer l'image pour docker run
+        run: docker tag my-image:latest remylt/cicd-tuto:latest
+      
       - name: Push Docker image
-        run: docker push my-image:latest
+        run: docker push remylt/cicd-tuto:latest
